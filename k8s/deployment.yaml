@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: brain-tumor-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: brain-tumor
+  template:
+    metadata:
+      labels:
+        app: brain-tumor
+    spec:
+      containers:
+      - name: brain-tumor-container
+        image: iammarginankola/brain-tumor:v1
+        ports:
+        - containerPort: 8000
+
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+
+        volumeMounts:
+        - name: media-storage
+          mountPath: /app/media
+
+      volumes:
+      - name: media-storage
+        persistentVolumeClaim:
+          claimName: brain-tumor-pvc

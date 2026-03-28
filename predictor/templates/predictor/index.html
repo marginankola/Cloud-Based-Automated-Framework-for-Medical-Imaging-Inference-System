@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrainLesionNet | Advanced Diagnostic System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --font-main: 'Inter', sans-serif;
+            /* Elegant Dark Theme Palette */
+            --bg-color: #111827;
+            /* Very deep blue-gray */
+            --bg-gradient: radial-gradient(circle at top right, #1f2937, #111827);
+            --card-bg: rgba(31, 41, 55, 0.7);
+            /* Translucent dark gray */
+            --sidebar-bg: rgba(17, 24, 39, 0.95);
+
+            --primary-accent: #3b82f6;
+            /* Medical Blue */
+            --primary-glow: rgba(59, 130, 246, 0.15);
+
+            --text-main: #f9fafb;
+            /* Near white */
+            --text-muted: #9ca3af;
+            /* Cool gray */
+
+            --border-color: rgba(255, 255, 255, 0.08);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.05);
+
+            --error-color: #ef4444;
+            --success-color: #10b981;
+
+            --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-deep: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-color);
+            background-image: var(--bg-gradient);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- Header --- */
+        header {
+            height: 64px;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: rgba(17, 24, 39, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: var(--glass-border);
+            z-index: 20;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 600;
+            font-size: 1.15rem;
+            color: var(--text-main);
+            letter-spacing: -0.02em;
+        }
+
+        .brand i {
+            color: var(--primary-accent);
+            font-size: 1.25rem;
+            filter: drop-shadow(0 0 8px var(--primary-glow));
+        }
+
+        .header-badge {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            border: var(--glass-border);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* --- Main Layout --- */
+        main {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            gap: 0;
+            height: calc(100vh - 64px);
+        }
+
+        /* --- Sidebar (Controls) --- */
+        .sidebar {
+            background-color: var(--sidebar-bg);
+            border-right: var(--glass-border);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2.5rem;
+            overflow-y: auto;
+            box-shadow: var(--shadow-deep);
+            z-index: 10;
+        }
+
+        .section-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .upload-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .drop-zone {
+            border: 1px dashed var(--border-color);
+            background-color: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .drop-zone:hover,
+        .drop-zone.dragover {
+            border-color: var(--primary-accent);
+            background-color: var(--primary-glow);
+            transform: translateY(-1px);
+        }
+
+        .drop-zone i {
+            font-size: 2rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            transition: color 0.3s;
+        }
+
+        .drop-zone:hover i {
+            color: var(--primary-accent);
+        }
+
+        .drop-zone p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .drop-zone input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-status {
+            font-size: 0.85rem;
+            color: var(--text-main);
+            min-height: 1.2em;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .analyze-btn {
+            width: 100%;
+            background-color: var(--primary-accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.85rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            box-shadow: 0 4px 6px rgba(59, 130, 246, 0.25);
+        }
+
+        .analyze-btn:hover {
+            background-color: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 8px rgba(59, 130, 246, 0.3);
+        }
+
+        .analyze-btn:active {
+            transform: translateY(0);
+        }
+
+        /* --- Results Panel --- */
+        .result-panel {
+            background-color: var(--card-bg);
+            border: var(--glass-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: auto;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .diagnosis-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.02em;
+        }
+
+        .diagnosis-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 1.25rem;
+            letter-spacing: -0.02em;
+        }
+
+        .disclaimer-box {
+            background-color: rgba(239, 68, 68, 0.08);
+            border-left: 3px solid var(--error-color);
+            padding: 0.85rem;
+            font-size: 0.75rem;
+            color: #fca5a5;
+            line-height: 1.5;
+            border-radius: 0 4px 4px 0;
+        }
+
+        /* --- Viewer Area --- */
+        .viewer-area {
+            background-color: #000;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            opacity: 0.6;
+        }
+
+        .empty-state i {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.4;
+        }
+
+        .empty-state p {
+            font-weight: 300;
+            letter-spacing: 0.02em;
+        }
+
+        #gl {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* --- Loader --- */
+        .loader-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(17, 24, 39, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--primary-accent);
+            border-radius: 50%;
+            animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+
+        .loader-text {
+            margin-top: 1.5rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-main);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        /* --- Toast --- */
+        .toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 50;
+        }
+
+        .toast {
+            background-color: #1f2937;
+            border-left: 4px solid var(--error-color);
+            color: var(--text-main);
+            padding: 1rem 1.5rem;
+            border-radius: 6px;
+            box-shadow: var(--shadow-deep);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            max-width: 400px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            main {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+                height: auto;
+            }
+
+            .sidebar {
+                flex-direction: row;
+                flex-wrap: wrap;
+                align-items: flex-start;
+                padding: 1.5rem;
+            }
+
+            .upload-container {
+                flex: 1;
+                min-width: 300px;
+            }
+
+            .result-panel {
+                flex: 1;
+                min-width: 300px;
+                margin-top: 0;
+            }
+
+            .viewer-area {
+                height: 60vh;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Loader -->
+    <div id="loader" class="loader-overlay">
+        <div class="spinner"></div>
+        <p class="loader-text">Analyzing Scan...</p>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="brand">
+            <i class="fa-solid fa-brain"></i>
+            <span>BrainLesionNet</span>
+        </div>
+        <div class="header-badge">
+            <i class="fa-solid fa-shield-halved"></i> Clinical Mode
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="upload-container">
+                <div class="section-title">New Analysis</div>
+                <form method="post" enctype="multipart/form-data" id="upload-form">
+                    {% csrf_token %}
+                    <div class="drop-zone" id="drop-zone">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <p><strong>Click to upload</strong> or drag and drop<br>NIfTI file (.nii, .nii.gz)</p>
+                        <input type="file" name="nifti_file" id="nifti-file-input" accept=".nii,.nii.gz" required>
+                    </div>
+                    <div class="file-status" id="file-name"></div>
+                    <button type="submit" class="analyze-btn" id="submit-btn">
+                        <i class="fa-solid fa-microscope"></i> Run Diagnostic Analysis
+                    </button>
+                </form>
+            </div>
+
+            {% if predicted_class %}
+            <div class="result-panel">
+                <div class="section-title" style="margin-bottom: 0.75rem;">Analysis Results</div>
+                <div class="diagnosis-label">Detected Classification</div>
+                <div class="diagnosis-value">{{ predicted_class }}</div>
+
+                <div class="disclaimer-box">
+                    <strong>DISCLAIMER:</strong> AI-assisted analysis. Results must be verified by a qualified
+                    radiologist.
+                </div>
+            </div>
+            {% endif %}
+        </aside>
+
+        <!-- Viewer -->
+        <section class="viewer-area">
+            {% if mask_url %}
+            <canvas id="gl"></canvas>
+            {% else %}
+            <div class="empty-state">
+                <i class="fa-solid fa-layer-group"></i>
+                <p>Load a NIfTI scan to visualize<br>3D structure and segmentation.</p>
+            </div>
+            {% endif %}
+        </section>
+    </main>
+
+    <!-- Toast Notification -->
+    {% if error_message %}
+    <div class="toast-container">
+        <div class="toast">
+            <i class="fa-solid fa-circle-exclamation" style="color: var(--error-color);"></i>
+            <div>
+                <strong style="display: block; margin-bottom: 0.25rem;">Analysis Error</strong>
+                <span style="font-size: 0.9rem; color: var(--text-muted);">{{ error_message }}</span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Scripts -->
+    {% if mask_url %}
+    <script type="module">
+        import { Niivue } from 'https://unpkg.com/@niivue/niivue@0.57.0/dist/index.js';
+        const volumeList = [
+            { url: '{{ original_url | safe }}', colormap: 'gray', opacity: 1.0 },
+            { url: '{{ mask_url | safe }}', colormap: 'red', opacity: 0.6 }
+        ];
+        const nv = new Niivue({
+            isColorbar: true,
+            isResizeCanvas: true,
+            backColor: [0, 0, 0, 1] // Black background
+        });
+        await nv.attachTo('gl');
+        await nv.loadVolumes(volumeList);
+        nv.setSliceType(nv.sliceTypeRender);
+    </script>
+    {% endif %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('upload-form');
+            const loader = document.getElementById('loader');
+            const fileInput = document.getElementById('nifti-file-input');
+            const fileNameDisplay = document.getElementById('file-name');
+            const dropZone = document.getElementById('drop-zone');
+
+            // Clear any old theme preference
+            localStorage.removeItem('cerebria-theme');
+            document.body.classList.remove('theme-futuristic');
+
+            // File Input Change
+            fileInput.addEventListener('change', () => {
+                if (fileInput.files.length > 0) {
+                    fileNameDisplay.textContent = fileInput.files[0].name;
+                    dropZone.style.borderColor = '#3b82f6';
+                    dropZone.style.backgroundColor = 'rgba(59, 130, 246, 0.08)';
+                } else {
+                    fileNameDisplay.textContent = '';
+                    dropZone.style.borderColor = '';
+                    dropZone.style.backgroundColor = '';
+                }
+            });
+
+            // Drag and Drop Effects
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, unhighlight, false);
+            });
+
+            function highlight(e) {
+                dropZone.classList.add('dragover');
+            }
+
+            function unhighlight(e) {
+                dropZone.classList.remove('dragover');
+            }
+
+            dropZone.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                fileInput.files = files;
+                const event = new Event('change');
+                fileInput.dispatchEvent(event);
+            }
+
+            // Form Submit
+            form.addEventListener('submit', () => {
+                if (fileInput.files.length > 0) {
+                    loader.style.display = 'flex';
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
