@@ -1,1 +1,1 @@
-brain-tumor
+brain-tumor-app
